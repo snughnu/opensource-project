@@ -25,18 +25,21 @@ class Basic:
 
 
 class Block(Basic):
-    def __init__(self, color: tuple, pos: tuple = (0,0), alive = True):
+    def __init__(self, color: tuple, pos: tuple = (0, 0), alive=True):
         super().__init__(color, 0, pos, config.block_size)
         self.pos = pos
         self.alive = alive
 
     def draw(self, surface) -> None:
         pygame.draw.rect(surface, self.color, self.rect)
-    
-    def collide(self):
-        # ============================================
-        # TODO: Implement an event when block collides with a ball
+
+    def collide(self, items: list):
         self.alive = False
+        # 20% 확률로 아이템 생성
+        if random.random() <= 0.2:
+            item_color = random.choice([(255, 0, 0), (0, 0, 255)])  # 빨간색 또는 파란색
+            item = Basic(item_color, config.item_speed, self.rect.center, config.item_size)
+            items.append(item)
 
 
 class Paddle(Basic):
@@ -65,42 +68,33 @@ class Ball(Basic):
     def draw(self, surface):
         pygame.draw.ellipse(surface, self.color, self.rect)
 
-    def collide_block(self, blocks: list):
-        # ============================================
-        # TODO: Implement an event when the ball hits a block
-        for block in blocks:
-            if block.alive == True:
-                if self.rect.colliderect(block.rect):
-                    area = self.rect.clip(block.rect)
+    def collide_block(self, blocks: list, items: list):
+        for block in blocks[:]:
+            if block.alive and self.rect.colliderect(block.rect):
+                area = self.rect.clip(block.rect)
 
-                    if area.width > area.height:
-                        self.dir = 360 - self.dir
-                    else:
-                        self.dir = 180 - self.dir
+                if area.width > area.height:
+                    self.dir = 360 - self.dir
+                else:
+                    self.dir = 180 - self.dir
 
-                    block.collide()
-                    if block in blocks:
-                        blocks.remove(block)
-                    break
+                block.collide(items)
+                if block in blocks:
+                    blocks.remove(block)
+                    if random.random() <= 0.2:  # 아이템 생성
+                        item_color = random.choice([(255, 0, 0), (0, 0, 255)])  # 빨간색 또는 파란색
+                        item = Basic(item_color, config.item_speed, block.rect.center, config.item_size)
+                        items.append(item)
 
     def collide_paddle(self, paddle: Paddle) -> None:
         if self.rect.colliderect(paddle.rect):
             self.dir = 360 - self.dir + random.randint(-5, 5)
 
     def hit_wall(self):
-        # ============================================
-        # TODO: Implement a service that bounces off when the ball hits the wall
-        if self.rect.left <= 0:
-            self.dir = 180 - self.dir
-        elif self.rect.right >= config.display_dimension[0]:
+        if self.rect.left <= 0 or self.rect.right >= config.display_dimension[0]:
             self.dir = 180 - self.dir
         if self.rect.top <= 0:
             self.dir = 360 - self.dir
-    
+
     def alive(self):
-        # ============================================
-        # TODO: Implement a service that returns whether the ball is alive or not
-        if self.rect.bottom > config.display_dimension[1]:
-            return False
-        else:
-            return True
+        return self.rect.bottom <= config.display_dimension[1]

@@ -38,50 +38,51 @@ def create_blocks():
 
 def tick():
     global life
-    global BLOCKS
-    global ITEMS
-    global BALLS
-    global paddle
-    global ball1
     global start
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
         elif event.type == pygame.KEYDOWN:
-            if event.key == K_ESCAPE:  # ESC 키가 눌렸을 때
+            if event.key == K_ESCAPE:
                 pygame.quit()
                 sys.exit()
-            if event.key == K_SPACE:  # space키가 눌려지만 start 변수가 True로 바뀌며 게임 시작
+            if event.key == K_SPACE and life > 0:  # 스페이스바를 눌러야만 시작
                 start = True
             paddle.move_paddle(event)
 
-    for ball in BALLS:
+    for ball in BALLS[:]:
         if start:
             ball.move()
         else:
             ball.rect.centerx = paddle.rect.centerx
             ball.rect.bottom = paddle.rect.top
 
-        ball.collide_block(BLOCKS)
+        ball.collide_block(BLOCKS, ITEMS)
         ball.collide_paddle(paddle)
         ball.hit_wall()
-        if ball.alive() == False:
+        if not ball.alive():
             BALLS.remove(ball)
+            start = False  # 공이 죽으면 start를 False로 설정
+
+    for item in ITEMS[:]:
+        item.move()
+        if item.rect.top > config.display_dimension[1]:  # 화면 아래로 벗어나면 제거
+            ITEMS.remove(item)
+        elif item.rect.colliderect(paddle.rect):  # 패들과 충돌 시 처리
+            if item.color == (255, 0, 0):  # 빨간색 공을 먹으면 추가 공 발사
+                new_ball = Ball(paddle.rect.center)  # 새로운 공을 생성하여 패들의 위치에서 발사
+                BALLS.append(new_ball)
+            ITEMS.remove(item)
 
 
 def main():
     global life
-    global BLOCKS
-    global ITEMS
-    global BALLS
-    global paddle
-    global ball1
-    global start
+    create_blocks()
     my_font = pygame.font.SysFont(None, 50)
     mess_clear = my_font.render("Cleared!", True, config.colors[2])
     mess_over = my_font.render("Game Over!", True, config.colors[2])
-    create_blocks()
 
     while True:
         tick()
@@ -91,8 +92,10 @@ def main():
         for block in BLOCKS:
             block.draw(surface)
 
-        cur_score = config.num_blocks[0] * config.num_blocks[1] - len(BLOCKS)
+        for item in ITEMS:
+            pygame.draw.ellipse(surface, item.color, item.rect)
 
+        cur_score = config.num_blocks[0] * config.num_blocks[1] - len(BLOCKS)
         score_txt = my_font.render(f"Score : {cur_score * 10}", True, config.colors[2])
         life_font = my_font.render(f"Life: {life}", True, config.colors[0])
 
@@ -102,20 +105,15 @@ def main():
         if len(BALLS) == 0:
             if life > 1:
                 life -= 1
-                ball1 = Ball()
-                BALLS = [ball1]
+                BALLS.append(Ball())
                 start = False
             else:
                 surface.blit(mess_over, (200, 300))
-        elif all(block.alive == False for block in BLOCKS):
+        elif all(not block.alive for block in BLOCKS):
             surface.blit(mess_clear, (200, 400))
         else:
             for ball in BALLS:
-                if start == True:
-                    ball.move()
                 ball.draw(surface)
-            for block in BLOCKS:
-                block.draw(surface)
 
         pygame.display.update()
         fps_clock.tick(config.fps)
