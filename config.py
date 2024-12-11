@@ -39,6 +39,7 @@ ball_size = (20, 20)
 
 # Setting for items
 item_size = (20, 20)
+item_speed = 5
 one_more_prob = 0.3
 fever_prob = 0.1
 add_score_prob = 0.1
