@@ -35,6 +35,7 @@ def create_blocks():
             block = Block(color, (x, y))
             BLOCKS.append(block)
 
+
 def tick():
     global life
     global start
@@ -69,7 +70,10 @@ def tick():
         item.move()
         if item.rect.top > config.display_dimension[1]:  # 화면 아래로 벗어나면 제거
             ITEMS.remove(item)
-        elif item.rect.colliderect(paddle.rect):  # 패들과 충돌 시 아무 일도 일어나지 않음
+        elif item.rect.colliderect(paddle.rect):  # 패들과 충돌 시 처리
+            if item.color == (255, 0, 0):  # 빨간색 공을 먹으면 추가 공 발사
+                new_ball = Ball(paddle.rect.center)  # 새로운 공을 생성하여 패들의 위치에서 발사
+                BALLS.append(new_ball)
             ITEMS.remove(item)
 
 

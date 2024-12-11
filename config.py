@@ -1,12 +1,12 @@
 # Setting for Blocks
 # Number of blocks
-num_blocks = (5, 3)
+num_blocks = (5, 5)
 # Size of margin
-margin = (60, 40)
+margin = (40, 40)
 # Size of block
 block_size = (80, 30)
 # Spacing between blocks
-spacing = (20, 20)
+spacing = (30, 20)
 score_pos = (10, 10)
 life_pos = (450, 10)
 

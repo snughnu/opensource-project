@@ -81,7 +81,10 @@ class Ball(Basic):
                 block.collide(items)
                 if block in blocks:
                     blocks.remove(block)
-                break
+                    if random.random() <= 0.2:  # 아이템 생성
+                        item_color = random.choice([(255, 0, 0), (0, 0, 255)])  # 빨간색 또는 파란색
+                        item = Basic(item_color, config.item_speed, block.rect.center, config.item_size)
+                        items.append(item)
 
     def collide_paddle(self, paddle: Paddle) -> None:
         if self.rect.colliderect(paddle.rect):
